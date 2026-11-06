@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#EFE6DA">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Tutor J Studio">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Tutor J Carousel Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700;1,800&family=Inter:wght@400;500;600;700;800&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+/* Tutor J studio. Layout: editor left, live 4:5 preview + strip right; stacks on phones */
+:root{
+  color-scheme:light;
+  /* app chrome */
+  --bg:#F3ECE2; --panel:#FBF7F1; --field:#FFFFFF; --text:#1B2430; --muted:#6B6F78; --rule:rgba(27,36,48,.14);
+  /* brand */
+  --paper:#EFE6DA; --ink:#1B2430; --red:#D7262E; --red2:#B81E25; --cream:#F7F1E8; --blue:#1F4FD1;
+  --display:"Playfair Display",Georgia,"Times New Roman",serif;
+  --ui:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+html,body{background:var(--bg);color:var(--text);margin:0}
+body{font-family:var(--ui);font-size:15px;line-height:1.45;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:max(18px,env(safe-area-inset-top,0px)) 40px}
+*{box-sizing:border-box}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--red);outline-offset:2px}
+[hidden]{display:none!important}
+
+.app-head{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;justify-content:space-between;max-width:1320px;margin:0 auto 18px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .sq{width:36px;height:36px;border-radius:50%;background:var(--red);color:var(--cream);display:grid;place-items:center;font-family:var(--display);font-style:italic;font-weight:800;font-size:20px}
+.brand h1{font-family:var(--display);font-style:italic;font-weight:800;font-size:26px;margin:0}
+.brand small{display:block;font-size:12px;color:var(--muted)}
+.head-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{border:1px solid var(--rule);background:var(--panel);border-radius:10px;padding:10px 14px;font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:8px}
+.btn:hover{border-color:rgba(27,36,48,.35)}
+.btn.primary{background:var(--red);color:#fff;border-color:var(--red)}
+.btn.primary:hover{background:var(--red2)}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--red2)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.wu-btn{border-color:var(--red);color:var(--red2)}
+select.btn{appearance:none;padding-right:34px;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+
+.grid{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:22px;max-width:1320px;margin:0 auto;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}.preview-col{order:-1}}
+.panel{background:var(--panel);border:1px solid var(--rule);border-radius:16px;padding:18px;min-width:0}
+.panel h2{font-size:12px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);margin:0 0 12px;font-weight:700}
+.stack{display:flex;flex-direction:column;gap:16px}
+.tabs{display:flex;flex-wrap:wrap;gap:8px}
+.tab{width:44px;height:55px;border-radius:8px;border:2px solid var(--rule);background:var(--paper);color:var(--ink);font-family:var(--display);font-weight:800;font-size:18px;display:grid;place-items:center}
+.tab.ivory{background:var(--ink);color:var(--cream)}
+.tab.orange{background:var(--red);color:#fff}
+.tab.on{border-color:var(--red);box-shadow:0 0 0 2px var(--red)}
+.tab.add{border-style:dashed;font-family:var(--ui);font-size:24px;color:var(--muted);background:transparent}
+.row-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.row-btns .btn{padding:7px 11px;font-size:13px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:13px;font-weight:600}
+.field .hint{font-size:12px;color:var(--muted)}
+.field input,.field textarea,.field select{background:var(--field);border:1px solid var(--rule);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
+.field textarea{resize:vertical;min-height:84px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.themes{display:flex;gap:8px}
+.themes button{flex:1;border-radius:10px;border:2px solid var(--rule);padding:10px 6px;font-weight:700;font-size:13px}
+.themes button[data-t="navy"]{background:var(--paper);color:var(--ink)}
+.themes button[data-t="ivory"]{background:var(--ink);color:var(--cream)}
+.themes button[data-t="orange"]{background:var(--red);color:#fff}
+.themes button.on{box-shadow:0 0 0 3px var(--red);border-color:#fff}
+.tip{font-size:13px;color:var(--muted);background:rgba(215,38,46,.06);border:1px solid rgba(215,38,46,.25);border-radius:10px;padding:10px 12px}
+.tip b{color:var(--red2)}
+details.brandbox summary{cursor:pointer;font-weight:700;font-size:14px}
+details.brandbox[open] summary{margin-bottom:12px}
+.preview-col{position:sticky;top:max(12px,env(safe-area-inset-top,0px))}
+@media (max-width:900px){.preview-col{position:static}}
+.stage{width:100%;max-width:560px;margin:0 auto;aspect-ratio:4/5;position:relative;border-radius:14px;overflow:hidden;box-shadow:0 18px 50px rgba(27,36,48,.22)}
+.stage .scaler{position:absolute;left:0;top:0;width:1080px;height:1350px;transform-origin:0 0}
+.strip{display:flex;gap:10px;overflow-x:auto;padding:14px 2px 6px;margin-top:8px;scroll-snap-type:x mandatory}
+.mini{flex:none;width:108px;aspect-ratio:4/5;border-radius:8px;overflow:hidden;position:relative;border:2px solid transparent;scroll-snap-align:start;padding:0;background:none}
+.mini.on{border-color:var(--red)}
+.mini .scaler{position:absolute;left:0;top:0;width:1080px;height:1350px;transform:scale(.1);transform-origin:0 0;pointer-events:none}
+.status{min-height:22px;text-align:center;font-size:13px;color:var(--muted);margin-top:10px}
+.status.err{color:var(--red2)}
+.status.ok{color:#1E7A46}
+.sheet{position:fixed;inset:0;background:rgba(27,36,48,.6);display:grid;place-items:center;z-index:50;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheet-inner{max-width:520px;width:100%;background:var(--panel);border-radius:16px;padding:18px;border:1px solid var(--rule);max-height:100%;overflow:auto}
+.sheet-inner img{width:100%;border-radius:10px;display:block;margin:12px 0}
+#wu .sheet-inner{max-width:760px}
+#wu textarea{width:100%;min-height:300px;background:var(--field);border:1px solid var(--rule);border-radius:12px;padding:14px;font-size:15px;line-height:1.5;resize:vertical}
+#wu h2{font-family:var(--display);font-style:italic;font-weight:800;font-size:26px;margin:0 0 6px}
+#wu p.lead{color:var(--muted);margin:0 0 14px;font-size:14px}
+#wu .opts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+@media (max-width:560px){#wu .opts{grid-template-columns:1fr}}
+#wu .acts{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+#wu .count{font-size:13px;color:var(--muted);margin-top:6px}
+#export{position:fixed;left:-30000px;top:0;width:1080px;height:1350px;pointer-events:none}
+#gate{position:fixed;inset:0;z-index:100;background:var(--paper);display:grid;place-items:center;padding:24px}
+#gate form{width:100%;max-width:340px;display:flex;flex-direction:column;gap:14px;text-align:center}
+#gate .sq{width:56px;height:56px;border-radius:50%;background:var(--red);color:var(--cream);display:grid;place-items:center;margin:0 auto 6px;font-family:var(--display);font-style:italic;font-weight:800;font-size:30px}
+#gate h1{font-family:var(--display);font-style:italic;font-weight:800;font-size:32px;margin:0}
+#gate input{background:#fff;border:1px solid var(--rule);border-radius:12px;padding:14px;font-size:18px;text-align:center}
+#gate .msg{min-height:20px;color:var(--red2);font-size:14px}
+
+/* ================= SLIDES (1080 x 1350) =================
+   theme keys: navy = Paper (default), ivory = Ink, orange = Red */
+.slide{width:1080px;height:1350px;position:relative;overflow:hidden;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;padding:70px 84px 64px;font-family:var(--ui);line-height:1.2;text-align:left}
+.slide *{box-sizing:border-box}
+.slide.ivory{background:var(--ink);color:var(--cream)}
+.slide.orange{background:var(--red);color:var(--cream)}
+.slide .grid-bg{position:absolute;inset:0;background-image:radial-gradient(rgba(27,36,48,.07) 1.6px,transparent 1.7px);background-size:36px 36px}
+.slide.ivory .grid-bg{background-image:radial-gradient(rgba(247,241,232,.08) 1.6px,transparent 1.7px)}
+.slide.orange .grid-bg{background-image:radial-gradient(rgba(247,241,232,.12) 1.6px,transparent 1.7px)}
+.slide .glow{position:absolute;width:1000px;height:1000px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.55) 0%,rgba(255,255,255,.15) 40%,rgba(255,255,255,0) 68%)}
+.slide .photo{position:absolute;inset:0;background-size:cover;background-position:center top}
+.slide .shade{position:absolute;inset:0;background:linear-gradient(0deg,rgba(27,36,48,1) 0%,rgba(27,36,48,.95) 38%,rgba(27,36,48,.35) 66%,rgba(27,36,48,.1) 100%)}
+.slide.has-photo{color:var(--cream)}
+.slide .wm{position:absolute;left:-10px;bottom:170px;font-family:var(--display);font-style:italic;font-weight:800;font-size:300px;line-height:.85;white-space:nowrap;color:rgba(27,36,48,.05)}
+.slide.ivory .wm,.slide.orange .wm{color:rgba(247,241,232,.06)}
+.slide .rail{position:absolute;left:0;right:0;bottom:150px;height:3px;background:var(--red)}
+.slide.orange .rail{background:var(--cream)}
+.slide.first .rail{left:84px}.slide.last .rail{right:84px}
+.slide .dot{position:absolute;bottom:144px;width:15px;height:15px;border-radius:50%;background:var(--red)}
+.slide.orange .dot{background:var(--cream)}
+.slide .top{position:relative;display:flex;justify-content:space-between;align-items:center}
+.slide .mark{display:flex;align-items:center;gap:16px}
+.slide .mark i{width:58px;height:58px;border-radius:50%;background:var(--red);color:var(--cream);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-style:italic;font-weight:800;font-size:32px}
+.slide.orange .mark i{background:var(--cream);color:var(--red)}
+.slide .mark b{font-family:var(--display);font-style:italic;font-weight:800;font-size:34px}
+.slide .count{font-size:24px;font-weight:600;opacity:.6;letter-spacing:.5px}
+.slide .bottom{position:absolute;left:84px;right:84px;bottom:56px;display:flex;justify-content:space-between;align-items:center}
+.slide .tagline{opacity:.6;letter-spacing:2.5px;text-transform:uppercase;font-size:19px;font-weight:600}
+.slide .swipe{display:flex;align-items:center;gap:12px;white-space:nowrap;font-family:var(--display);font-style:italic;font-weight:800;font-size:30px}
+.slide .swipe .pg{font-family:var(--ui);font-style:normal;font-weight:600;font-size:22px;opacity:.55;margin-right:8px}
+.slide .swipe svg{width:62px;height:20px}
+.slide .body{position:relative;flex:1;display:flex;flex-direction:column;justify-content:center;padding-bottom:110px}
+.slide.has-photo .body{justify-content:flex-end;padding-bottom:140px}
+.slide .kicker{display:flex;align-items:center;gap:14px;font-weight:700;font-size:24px;letter-spacing:4px;text-transform:uppercase;color:var(--red);margin-bottom:30px}
+.slide .kicker:before{content:"";width:44px;height:3px;background:currentColor;display:block}
+.slide.ivory .kicker,.slide.has-photo .kicker{color:#FF6B6F}
+.slide.orange .kicker{color:var(--cream)}
+.slide .h{font-family:var(--display);font-weight:800;line-height:1.06;letter-spacing:-.5px;margin:0}
+.slide .xl{font-size:124px}.slide .l{font-size:102px}.slide .m{font-size:82px}.slide .s{font-size:64px}
+.slide .o{color:var(--red);font-style:italic}
+.slide.ivory .o,.slide.has-photo .o{color:#FF6B6F}
+.slide.orange .o{color:var(--ink)}
+.slide .serif{font-family:var(--display);font-style:italic;font-weight:700}
+.slide .sub{font-size:50px;line-height:1.22;margin-top:32px;opacity:.9}
+.slide.orange .sub{opacity:1}
+.slide .lead{font-size:42px;line-height:1.4;font-weight:500;margin-top:32px;opacity:.88}
+.slide .small{font-size:32px;line-height:1.45;opacity:.72;margin-top:44px}
+.slide .hl{background:rgba(215,38,46,.18);padding:0 8px;border-radius:4px}
+.slide.ivory .hl,.slide.orange .hl{background:rgba(247,241,232,.18)}
+.slide .rows{display:flex;flex-direction:column;gap:22px;margin-top:44px}
+.slide .rowi{display:flex;align-items:center;gap:30px;padding:26px 34px;border-radius:20px;background:#F8F2EA;border:2px solid rgba(27,36,48,.08)}
+.slide.ivory .rowi{background:rgba(247,241,232,.07);border-color:rgba(247,241,232,.1)}
+.slide.orange .rowi{background:rgba(247,241,232,.14);border-color:rgba(247,241,232,.2)}
+.slide .rowi .n{font-family:var(--display);font-style:italic;font-weight:800;font-size:64px;color:var(--red);min-width:96px;line-height:1}
+.slide.ivory .rowi .n{color:#FF6B6F}
+.slide.orange .rowi .n{color:var(--ink)}
+.slide .rowi .t{font-size:40px;font-weight:600;line-height:1.25}
+.slide .chk{width:56px;height:56px;border-radius:50%;background:var(--red);display:flex;align-items:center;justify-content:center;flex:none}
+.slide.orange .chk{background:var(--cream)}
+.slide .chk svg{width:30px;height:30px}
+.slide .qmark{font-family:var(--display);font-weight:800;font-size:360px;line-height:.62;color:var(--red);height:160px}
+.slide.orange .qmark{color:var(--cream)}
+.slide.ivory .qmark{color:#FF6B6F}
+.slide .big{font-family:var(--display);font-style:italic;font-weight:800;font-size:230px;line-height:.95;color:var(--red);white-space:nowrap}
+.slide.ivory .big{color:#FF6B6F}
+.slide.orange .big{color:var(--cream)}
+.slide .quote{font-size:70px;line-height:1.2}
+.slide table.cmp{width:100%;margin-top:48px;border-collapse:separate;border-spacing:0;border-radius:22px;overflow:hidden;background:#FBF7F1}
+.slide.ivory table.cmp{background:rgba(247,241,232,.07)}
+.slide table.cmp th{text-align:left;padding:22px 32px;font-size:24px;letter-spacing:3px;font-weight:800;background:rgba(27,36,48,.06)}
+.slide.ivory table.cmp th{background:rgba(247,241,232,.08)}
+.slide table.cmp th:first-child{opacity:.6}
+.slide table.cmp th:last-child{color:var(--red)}
+.slide table.cmp td{padding:26px 32px;font-size:36px;font-weight:600;border-top:2px solid rgba(27,36,48,.08);width:50%}
+.slide.ivory table.cmp td{border-top-color:rgba(247,241,232,.1)}
+.slide table.cmp td:first-child{opacity:.6}
+.slide .card{background:var(--ink);color:var(--cream);border-radius:28px;padding:46px 50px;margin-top:54px}
+.slide .card .nm{font-family:var(--display);font-weight:800;font-size:54px}
+.slide .card .role{font-family:var(--display);font-style:italic;font-weight:700;font-size:30px;color:#FF8A8E;margin-top:6px}
+.slide .card .lines{display:flex;flex-wrap:wrap;margin-top:30px;font-size:29px;font-weight:600}
+.slide .card .lines div{width:50%;display:flex;align-items:center;gap:14px;padding:9px 0}
+.slide .card .lines svg{width:32px;height:32px;flex:none}
+.slide .txt{font-size:52px;line-height:1.4;font-weight:500;border-left:6px solid var(--red);padding-left:44px}
+.slide .txt.md{font-size:46px}.slide .txt.sm{font-size:40px}
+.slide .txt b{font-family:var(--display);font-style:italic;font-weight:700}
+.slide .txt .r{opacity:.8}
+.slide.orange .txt{border-left-color:var(--cream)}
+</style>
+</head><body>
+<div id="gate" hidden><form id="gateForm"><div class="sq">J</div><h1>Tutor J Studio</h1><label for="pass" style="color:var(--muted)">Enter your passcode</label><input id="pass" type="password" autocomplete="current-password" autofocus><button class="btn primary" type="submit" style="justify-content:center">Open</button><div class="msg" id="gateMsg"></div></form></div>
+
+<header class="app-head">
+  <div class="brand"><div class="sq" aria-hidden="true">J</div><div><h1>Tutor J Studio</h1><small>Carousel maker for @jennifer_olawore · 1080 × 1350</small></div></div>
+  <div class="head-actions">
+    <label for="starter" class="visually-hidden" style="position:absolute;left:-9999px">Start from</label>
+    <button class="btn wu-btn" id="openWu" type="button">Paste a write-up</button>
+    <select id="starter" class="btn">
+      <option value="">Start from…</option>
+      <option value="cover">Single cover (for an old post)</option>
+      <option value="blank">New 6-slide carousel</option>
+      <option value="intake">Example: January intake</option>
+    </select>
+    <button class="btn" id="dlOne" type="button">Download this slide</button>
+    <button class="btn primary" id="dlAll" type="button">Download all</button>
+  </div>
+</header>
+
+<main class="grid">
+  <section class="stack">
+    <div class="panel">
+      <h2>Slides</h2>
+      <div class="tabs" id="tabs"></div>
+      <div class="row-btns">
+        <button class="btn" type="button" id="dup">Duplicate</button>
+        <button class="btn" type="button" id="left">Move left</button>
+        <button class="btn" type="button" id="right">Move right</button>
+        <button class="btn danger" type="button" id="del">Delete</button>
+      </div>
+    </div>
+
+    <div class="panel stack" id="form"></div>
+
+    <div class="panel">
+      <details class="brandbox">
+        <summary>Contact details on the last slide</summary>
+        <div class="stack">
+          <div class="field"><label for="b_name">Name</label><input id="b_name"></div>
+          <div class="field"><label for="b_role">Title line</label><input id="b_role"></div>
+          <div class="two">
+            <div class="field"><label for="b_ig">Instagram</label><input id="b_ig"></div>
+            <div class="field"><label for="b_phone">Phone</label><input id="b_phone"></div>
+          </div>
+          <div class="two">
+            <div class="field"><label for="b_web">Website</label><input id="b_web"></div>
+            <div class="field"><label for="b_loc">Locations</label><input id="b_loc"></div>
+          </div>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section class="preview-col">
+    <div class="stage" id="stage"><div class="scaler" id="big"></div></div>
+    <div class="strip" id="strip" aria-label="All slides"></div>
+    <div class="status" id="status" role="status">Your work saves in this browser automatically.</div>
+  </section>
+</main>
+<div id="export" aria-hidden="true"></div>
+<div class="sheet" id="wu" hidden><div class="sheet-inner">
+  <h2>Write-up to carousel</h2>
+  <p class="lead">Paste your whole write-up. The app splits it into slides: a cover from your opening line, one idea per slide, and your contact card at the end. You can edit every slide after.</p>
+  <label for="wuText" style="font-weight:600;font-size:13px">Your write-up</label>
+  <textarea id="wuText" placeholder="Paste the full caption or write-up here…"></textarea>
+  <div class="count" id="wuCount">0 words</div>
+  <div class="opts">
+    <div class="field"><label for="wuKicker">Topic label for the cover (optional)</label><input id="wuKicker" placeholder="e.g. UK study tips"></div>
+    <div class="field"><label for="wuDensity">Text per slide</label><select id="wuDensity"><option value="short">Short (more slides, bigger text)</option><option value="medium" selected>Medium</option><option value="long">Long (fewer slides)</option></select></div>
+  </div>
+  <div class="acts"><button class="btn ghost" type="button" id="wuCancel">Cancel</button><button class="btn primary" type="button" id="wuGo">Make my carousel</button></div>
+</div></div>
+<div class="sheet" id="sheet" hidden><div class="sheet-inner"><strong>Press and hold each image, then choose “Save to Photos” (or right-click, “Save image as” on a computer).</strong><div id="sheetImgs"></div><button class="btn primary" type="button" id="sheetClose">Done</button></div></div>
+
+<script>
+const TYPES = {
+  cover:     {label:"Cover: big headline", fields:["kicker","head","sub","wm","photo"]},
+  quoteCover:{label:"Cover: quote", fields:["kicker","head","sub"]},
+  stat:      {label:"Cover: big number", fields:["kicker","big","head","sub"]},
+  statement: {label:"Statement", fields:["kicker","head","body"]},
+  list:      {label:"List (numbered or ticks)", fields:["kicker","head","body","items","style"]},
+  quote:     {label:"Big quote", fields:["head","sub"]},
+  compare:   {label:"Two-column table", fields:["kicker","head","left","right","items"]},
+  text:      {label:"Text slide (paragraph)", fields:["kicker","body"]},
+  cta:       {label:"Closing slide (contact card)", fields:["kicker","head","sub"]},
+};
+const FIELD = {
+  kicker:{label:"Small label above the headline",type:"input"},
+  head:{label:"Headline",type:"textarea",hint:"Put *stars* around a word to make it red."},
+  sub:{label:"Italic line",type:"textarea",hint:"Put *stars* around a word to highlight it."},
+  body:{label:"Body text",type:"textarea"},
+  big:{label:"Big number or word",type:"input",hint:"Short works best, e.g. £100 or 3 MONTHS."},
+  wm:{label:"Faint background word (optional)",type:"input"},
+  items:{label:"Items, one per line",type:"textarea",hint:"For the table, write each line as: left | right"},
+  style:{label:"List style",type:"select",options:[["num","Numbers 01, 02, 03"],["check","Orange ticks"]]},
+  left:{label:"Left column title",type:"input"},
+  right:{label:"Right column title",type:"input"},
+  photo:{label:"Photo (optional)",type:"file",hint:"A photo of you makes covers stop the scroll. Text sits at the bottom."},
+};
+const S = (type,theme,o)=>Object.assign({type,theme,kicker:"",head:"",sub:"",body:"",big:"",wm:"",items:"",style:"num",left:"",right:"",photo:""},o);
+const PRESETS = {
+  cover:()=>[S("cover","navy",{kicker:"UK study tips",head:"Getting an offer means *nothing* if your sponsor won't fund it.",sub:"Sort this out before you apply."})],
+  blank:()=>[
+    S("cover","navy",{kicker:"Topic",head:"Your big *hook* goes here.",sub:"One line that makes them swipe."}),
+    S("statement","navy",{kicker:"The problem",head:"Say the *problem* plainly.",body:"Two or three short sentences that explain why this matters to the student."}),
+    S("list","navy",{kicker:"What to know",head:"Three *things*:",items:"First point\nSecond point\nThird point"}),
+    S("list","ivory",{kicker:"Before you apply",head:"Check *these.*",items:"Your documents are complete\nYour sponsor is ready\nYour deadline is clear",style:"check"}),
+    S("quote","navy",{head:"A line students will *screenshot* and share.",sub:"One supporting sentence."}),
+    S("cta","orange",{kicker:"Let's talk",head:"Ready to start your UK journey?",sub:"Send me a message today."})],
+  intake:()=>[
+    S("cover","navy",{kicker:"January 2027 intake",head:"A January start is *not* a late September deadline.",sub:"Strong applications are built months in advance."}),
+    S("statement","navy",{kicker:"The mistake",head:"Many students get this *wrong.*",body:"They see a January start date and plan like they still have plenty of time."}),
+    S("list","navy",{kicker:"What takes time",head:"Things you can't *rush:*",items:"Choosing the right course and university\nGathering your documents\nWriting your personal statement\nConfirming funding with your sponsor"}),
+    S("list","ivory",{kicker:"Start now if you want",head:"Give yourself *room* for:",items:"A strong personal statement\nTime to fix missing documents\nAnswers to funding questions",style:"check"}),
+    S("quote","navy",{head:"An offer letter is a step. A *funded* offer is the plan.",sub:"Plan both at the same time."}),
+    S("cta","orange",{kicker:"Let's talk",head:"Planning to study in the UK?",sub:"Send me a message and let's plan your application."})],
+};
+const BRAND0 = {name:"Jennifer Olawore",role:"UK Education Counselor · British Council Certified",ig:"@jennifer_olawore",phone:"+234 706 920 6195",web:"linktr.ee/olaworejennifer",loc:"UK study admissions"};
+const KEY="tutorj-carousel-studio-v1";
+let state = {brand:{...BRAND0}, slides:PRESETS.intake(), cur:0};
+try{const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s&&Array.isArray(s.slides)&&s.slides.length){state={...state,...s,brand:{...BRAND0,...(s.brand||{})}};}}catch(e){}
+state.cur=Math.min(state.cur||0,state.slides.length-1);
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const orange=s=>esc(s).replace(/\*(.+?)\*/g,'<span class="o">$1</span>').replace(/\n/g,"<br>");
+const hilite=s=>esc(s).replace(/\*(.+?)\*/g,'<span class="hl">$1</span>').replace(/\n/g,"<br>");
+const ICON={
+  check:'<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 16l6 6 12-13"/></svg>',
+  arrow:'<svg viewBox="0 0 62 20" fill="currentColor"><rect x="0" y="8.5" width="50" height="3"/><path d="M48 2l14 8-14 8z"/></svg>',
+  ig:'<svg viewBox="0 0 32 32" fill="none" stroke="#FF8A8E" stroke-width="2.2"><rect x="5" y="5" width="22" height="22" rx="6"/><circle cx="16" cy="16" r="5"/></svg>',
+  ph:'<svg viewBox="0 0 32 32" fill="none" stroke="#FF8A8E" stroke-width="2.2"><path d="M8 5h5l2 6-3 2c1.5 3 4 5.5 7 7l2-3 6 2v5c0 1-1 2-2 2C14 26 6 18 6 7c0-1 1-2 2-2z"/></svg>',
+  web:'<svg viewBox="0 0 32 32" fill="none" stroke="#FF8A8E" stroke-width="2.2"><circle cx="16" cy="16" r="11"/><path d="M5 16h22M16 5c4 4 4 18 0 22M16 5c-4 4-4 18 0 22"/></svg>',
+  pin:'<svg viewBox="0 0 32 32" fill="none" stroke="#FF8A8E" stroke-width="2.2"><path d="M16 29s9-8 9-15a9 9 0 0 0-18 0c0 7 9 15 9 15z"/><circle cx="16" cy="14" r="3"/></svg>',
+};
+const GLOWS=["left:-350px;top:-350px","right:-450px;bottom:-350px","left:-400px;bottom:-400px","right:-350px;top:-350px"];
+
+function headSize(t,base){const n=(t||"").replace(/\*/g,"").length; const sizes=["xl","l","m","s"]; let i=sizes.indexOf(base); if(n>34&&i<1)i=1; if(n>56&&i<2)i=2; if(n>90)i=3; return sizes[i];}
+function lines(s){return String(s||"").split("\n").map(x=>x.trim()).filter(Boolean);}
+
+function slideHTML(s,i,n){
+  const b=state.brand, cls=["slide",s.theme==="navy"?"":s.theme]; if(i===0)cls.push("first"); if(i===n-1)cls.push("last");
+  const hasPhoto=s.type==="cover"&&s.photo; if(hasPhoto)cls.push("has-photo");
+  let bg='<div class="grid-bg"></div>';
+  if(s.theme==="navy"&&!hasPhoto) bg+=`<div class="glow" style="${GLOWS[i%4]}"></div>`;
+  if(hasPhoto) bg+=`<div class="photo" style="background-image:url('${s.photo}')"></div><div class="shade"></div>`;
+  if(s.wm&&!hasPhoto) bg+=`<div class="wm">${esc(s.wm)}</div>`;
+  bg+='<div class="rail"></div>'+(i===0?'<div class="dot" style="left:78px"></div>':'')+(i===n-1&&n>1?'<div class="dot" style="right:78px"></div>':'');
+  const k=s.kicker?`<div class="kicker">${esc(s.kicker)}</div>`:"";
+  let body="";
+  switch(s.type){
+    case "cover": body=`${k}<h2 class="h ${headSize(s.head,"xl")}">${orange(s.head)}</h2>${s.sub?`<div class="sub serif">${hilite(s.sub)}</div>`:""}`;break;
+    case "quoteCover": body=`<div class="qmark">&ldquo;</div>${k?k.replace('kicker"','kicker" style="margin-top:20px"'):""}<h2 class="h ${headSize(s.head,"l")}">${orange(s.head)}</h2>${s.sub?`<div class="sub serif">${hilite(s.sub)}</div>`:""}`;break;
+    case "stat": body=`${k}<div class="big">${esc(s.big)}</div><h2 class="h m" style="margin-top:20px">${orange(s.head)}</h2>${s.sub?`<div class="sub serif">${hilite(s.sub)}</div>`:""}`;break;
+    case "statement": body=`${k}<h2 class="h ${headSize(s.head,"xl")}">${orange(s.head)}</h2>${s.body?`<p class="lead">${hilite(s.body)}</p>`:""}`;break;
+    case "list": {const it=lines(s.items); body=`${k}<h2 class="h ${headSize(s.head,"l")}">${orange(s.head)}</h2>${s.body?`<p class="lead">${hilite(s.body)}</p>`:""}<div class="rows">${it.map((t,j)=>`<div class="rowi">${s.style==="check"?`<div class="chk" style="color:${s.theme==="orange"?"#D7262E":"#F7F1E8"}">${ICON.check}</div>`:`<div class="n">${String(j+1).padStart(2,"0")}</div>`}<div class="t">${orange(t)}</div></div>`).join("")}</div>`;break;}
+    case "quote": body=`<div class="qmark">&ldquo;</div><div class="quote serif">${hilite(s.head)}</div>${s.sub?`<p class="small">${esc(s.sub)}</p>`:""}`;break;
+    case "compare": {const it=lines(s.items).map(l=>l.split("|").map(x=>x.trim())); body=`${k}<h2 class="h m">${orange(s.head)}</h2><table class="cmp"><tr><th>${esc(s.left)}</th><th>${esc(s.right)}</th></tr>${it.map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1]||"")}</td></tr>`).join("")}</table>`;break;}
+    case "text": {const L=(s.body||"").replace(/\*/g,"").length; const ss=sentences(s.body||""); const f=ss.shift()||""; body=`${k}<p class="txt ${L>300?"sm":L>190?"md":""}"><b>${hilite(f)}</b> <span class="r">${hilite(ss.join(" "))}</span></p>`;break;}
+    case "cta": body=`${k}<h2 class="h ${headSize(s.head,"l")}">${orange(s.head)}</h2>${s.sub?`<div class="sub serif">${hilite(s.sub)}</div>`:""}
+      <div class="card"><div class="nm">${esc(b.name)}</div><div class="role">${esc(b.role)}</div><div class="lines">
+      <div>${ICON.ig}${esc(b.ig)}</div><div>${ICON.ph}${esc(b.phone)}</div><div>${ICON.web}${esc(b.web)}</div><div>${ICON.pin}${esc(b.loc)}</div></div></div>`;break;
+  }
+  const corner = n>1?`${String(i+1).padStart(2,"0")} / ${String(n).padStart(2,"0")}`:"";
+  const pg=n>1?`<span class="pg">${String(i+1).padStart(2,"0")} / ${String(n).padStart(2,"0")}</span>`:"";
+  const right = (i<n-1||n===1)?`<div class="swipe">${pg}Next ${ICON.arrow}</div>`:`<div class="swipe">${pg}Save &amp; share</div>`;
+  return `<div class="${cls.filter(Boolean).join(" ")}">${bg}
+    <div class="top"><div class="mark"><i>J</i><b>Tutor J</b></div><div class="count">@jennifer_olawore</div></div>
+    <div class="body">${body}</div>
+    <div class="bottom"><div class="tagline">UK Education Counselor</div>${right}</div></div>`;
+}
+
+/* ---------- UI ---------- */
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(state));}
+  catch(e){try{localStorage.setItem(KEY,JSON.stringify({...state,slides:state.slides.map(s=>({...s,photo:""}))}));setStatus("Saved, but photos are too large to keep after you close this page.","");}catch(_){}}
+}
+function setStatus(t,c){const el=$("status");el.textContent=t;el.className="status "+(c||"");}
+function fit(){const st=$("stage");$("big").style.transform=`scale(${st.clientWidth/1080})`;}
+
+function renderPreview(){
+  const n=state.slides.length;
+  $("big").innerHTML=slideHTML(state.slides[state.cur],state.cur,n);
+  $("strip").innerHTML=state.slides.map((s,i)=>`<button type="button" class="mini ${i===state.cur?"on":""}" data-i="${i}" aria-label="Slide ${i+1}"><div class="scaler">${slideHTML(s,i,n)}</div></button>`).join("");
+  $("tabs").innerHTML=state.slides.map((s,i)=>`<button type="button" class="tab ${s.theme} ${i===state.cur?"on":""}" data-i="${i}" aria-label="Edit slide ${i+1}">${i+1}</button>`).join("")+`<button type="button" class="tab add" id="add" aria-label="Add slide">+</button>`;
+  fit();
+}
+function renderForm(){
+  const s=state.slides[state.cur];
+  let h=`<h2>Slide ${state.cur+1}</h2>
+  <div class="field"><label for="f_type">Layout</label><select id="f_type">${Object.entries(TYPES).map(([k,v])=>`<option value="${k}" ${k===s.type?"selected":""}>${v.label}</option>`).join("")}</select></div>
+  <div class="field"><span style="font-size:13px;font-weight:600">Background</span><div class="themes">${["navy","ivory","orange"].map(t=>`<button type="button" data-t="${t}" class="${s.theme===t?"on":""}">${({navy:"Paper",ivory:"Ink",orange:"Red"})[t]}</button>`).join("")}</div></div>`;
+  for(const f of TYPES[s.type].fields){
+    const d=FIELD[f]; let lab=d.label; if(f==="head"&&s.type==="quote")lab="Quote";
+    let input;
+    if(d.type==="textarea") input=`<textarea id="f_${f}" rows="${f==="items"?5:3}">${esc(s[f])}</textarea>`;
+    else if(d.type==="select") input=`<select id="f_${f}">${d.options.map(([v,l])=>`<option value="${v}" ${s[f]===v?"selected":""}>${l}</option>`).join("")}</select>`;
+    else if(d.type==="file") input=`<input id="f_${f}" type="file" accept="image/*">${s.photo?`<button type="button" class="btn ghost" id="rmPhoto" style="align-self:flex-start">Remove photo</button>`:""}`;
+    else input=`<input id="f_${f}" value="${esc(s[f])}">`;
+    h+=`<div class="field"><label for="f_${f}">${lab}</label>${input}${d.hint?`<span class="hint">${d.hint}</span>`:""}</div>`;
+  }
+  h+=`<div class="tip">Tip: wrap a word in <b>*stars*</b> to make it red and italic, e.g. Your offer means *nothing* without funding.</div>`;
+  $("form").innerHTML=h;
+  $("f_type").onchange=e=>{s.type=e.target.value;commit(true);};
+  $("form").querySelectorAll(".themes button").forEach(b=>b.onclick=()=>{s.theme=b.dataset.t;commit(true);});
+  for(const f of TYPES[s.type].fields){
+    const el=$("f_"+f); if(!el)continue;
+    if(FIELD[f].type==="file"){el.onchange=()=>{const file=el.files[0]; if(!file)return; downscale(file).then(url=>{s.photo=url;commit(true);});};continue;}
+    el.oninput=el.onchange=()=>{s[f]=el.value;commit(false);};
+  }
+  const rm=$("rmPhoto"); if(rm)rm.onclick=()=>{s.photo="";commit(true);};
+}
+function downscale(file){return new Promise(res=>{const r=new FileReader();r.onload=()=>{const img=new Image();img.onload=()=>{const sc=Math.min(1,1400/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=img.width*sc;c.height=img.height*sc;c.getContext("2d").drawImage(img,0,0,c.width,c.height);res(c.toDataURL("image/jpeg",.86));};img.src=r.result;};r.readAsDataURL(file);});}
+function commit(full){save();renderPreview();if(full)renderForm();}
+function renderAll(){renderPreview();renderForm();
+  for(const k of Object.keys(BRAND0)){const el=$("b_"+k);el.value=state.brand[k];el.oninput=()=>{state.brand[k]=el.value;save();renderPreview();};}}
+
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-i]"); if(t&&(t.classList.contains("tab")||t.classList.contains("mini"))){state.cur=+t.dataset.i;save();renderPreview();renderForm();return;}
+  if(e.target.closest("#add")){const s=S("statement","navy",{kicker:"New slide",head:"Write your *point* here."});state.slides.splice(state.cur+1,0,s);state.cur++;commit(true);}
+});
+$("dup").onclick=()=>{state.slides.splice(state.cur+1,0,JSON.parse(JSON.stringify(state.slides[state.cur])));state.cur++;commit(true);};
+$("del").onclick=()=>{if(state.slides.length===1){setStatus("A post needs at least one slide.","err");return;}state.slides.splice(state.cur,1);state.cur=Math.max(0,state.cur-1);commit(true);};
+$("left").onclick=()=>{const i=state.cur;if(i<1)return;[state.slides[i-1],state.slides[i]]=[state.slides[i],state.slides[i-1]];state.cur--;commit(true);};
+$("right").onclick=()=>{const i=state.cur;if(i>=state.slides.length-1)return;[state.slides[i+1],state.slides[i]]=[state.slides[i],state.slides[i+1]];state.cur++;commit(true);};
+$("starter").onchange=e=>{const v=e.target.value;if(!v)return;state.slides=PRESETS[v]();state.cur=0;e.target.value="";commit(true);setStatus("Loaded. Edit the text on the left; it replaces what you had.","");};
+window.addEventListener("resize",fit);
+
+/* ---------- export ---------- */
+async function toBlob(i){
+  const holder=$("export"); holder.innerHTML=slideHTML(state.slides[i],i,state.slides.length);
+  await document.fonts.ready;
+  const canvas=await html2canvas(holder.firstElementChild,{width:1080,height:1350,scale:1,backgroundColor:null,logging:false,useCORS:true});
+  holder.innerHTML="";
+  return await new Promise(r=>canvas.toBlob(r,"image/png"));
+}
+function slug(){const h=(state.slides[0].head||"slide").replace(/\*/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,40);return h||"carousel";}
+const isTouch=matchMedia("(pointer:coarse)").matches;
+async function shareFiles(files){
+  if(isTouch&&navigator.canShare&&navigator.canShare({files})){try{await navigator.share({files});setStatus("Done. Choose “Save Images” to put them in your gallery.","ok");return true;}catch(e){if(e&&e.name==="AbortError"){setStatus("Cancelled.","");return true;}}}
+  return false;
+}
+function downloadBlob(name,blob){const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},4000);setStatus("Downloaded "+name,"ok");}
+function showSheet(blobs){$("sheetImgs").innerHTML="";blobs.forEach(b=>{const img=new Image();img.src=URL.createObjectURL(b);img.alt="Slide image";$("sheetImgs").appendChild(img);});$("sheet").hidden=false;}
+$("sheetClose").onclick=()=>{$("sheet").hidden=true;};
+$("dlOne").onclick=async()=>{const btn=$("dlOne");btn.disabled=true;setStatus("Preparing slide…","");
+  try{const blob=await toBlob(state.cur);const name=`${slug()}-slide-${String(state.cur+1).padStart(2,"0")}.png`;const f=new File([blob],name,{type:"image/png"});if(!(await shareFiles([f]))){if(isTouch){showSheet([blob]);setStatus("","");}else downloadBlob(name,blob);}}
+  catch(e){setStatus("Couldn't make the image. Try again in a moment.","err");}btn.disabled=false;};
+$("dlAll").onclick=async()=>{const btn=$("dlAll");btn.disabled=true;
+  try{const blobs=[];for(let i=0;i<state.slides.length;i++){setStatus(`Preparing slide ${i+1} of ${state.slides.length}…`,"");blobs.push(await toBlob(i));}
+    const files=blobs.map((b,i)=>new File([b],`${slug()}-${String(i+1).padStart(2,"0")}.png`,{type:"image/png"}));
+    if(await shareFiles(files)){}else if(isTouch){showSheet(blobs);setStatus("","");}
+    else{const zip=new JSZip();files.forEach(f=>zip.file(f.name,f));downloadBlob(`${slug()}.zip`,await zip.generateAsync({type:"blob"}));}}
+  catch(e){setStatus("Couldn't make the images. Try again in a moment.","err");}btn.disabled=false;};
+
+/* ---------- write-up to carousel (rule-based, works offline) ---------- */
+const SIGN=/(@jennifer_olawore|^\+?\s*234[\d\s]{6,}|^0[789]\d{9}$|Jennifer\s+Olawore|^Tutor[_ ]?J\.?$|linktr\.ee)/i;
+const CTA_RE=/(conversation|talk to|let'?s talk|reach out|send me|send a|dm me|\bdm\b|message me|contact me|book a|call me|happy to|you know who to|get in touch|link in bio|consultation)/i;
+const LIST_RE=/^\s*(?:[-•*▪➤✅✔️→]|\d{1,2}[.)])\s+/u;
+function clean(t){return t.replace(/\r/g,"").replace(/[\p{Extended_Pictographic}\u{1F3FB}-\u{1F3FF}\uFE0F\u200D]/gu,"").replace(/[ \t]+/g," ").replace(/ +([.,!?])/g,"$1").replace(/[—–]/g,", ").trim();}
+function sentences(p){return (p.match(/[^.!?]+[.!?]+["”’)\]]*|[^.!?]+$/g)||[]).map(x=>x.trim()).filter(Boolean);}
+function starLast(h){const m=h.match(/^(.*?)(\S+?)([.!?:,]*)$/s);return m&&m[2].length>2?`${m[1]}*${m[2]}${m[3]}*`:h;}
+function writeupToSlides(raw,kicker,density){
+  const lines=clean(raw).split("\n").map(l=>l.trim()).filter(l=>!SIGN.test(l));
+  // build blocks: paragraphs and lists
+  const blocks=[];let cur=null;
+  for(const l of lines){
+    if(!l){cur=null;continue;}
+    if(LIST_RE.test(l)){const item=l.replace(LIST_RE,"").trim();if(cur&&cur.t==="list")cur.items.push(item);else{cur={t:"list",items:[item]};blocks.push(cur);}continue;}
+    if(cur&&cur.t==="p"&&!/[.!?:"”]$/.test(cur.text)){cur.text+=" "+l;continue;}
+    cur={t:"p",text:l};blocks.push(cur);
+  }
+  const paras=blocks.filter(b=>b.t==="p"||b.items.length);
+  if(!paras.length)return null;
+  // cover
+  const first=paras.shift(); let fs=first.t==="p"?sentences(first.text):[first.items.join(". ")];
+  const cover=S("cover","navy",{kicker:kicker||"",head:starLast(fs.shift()||"")});
+  if(fs[0]&&fs[0].length<=90){cover.sub=fs.shift();}
+  if(fs.length)paras.unshift({t:"p",text:fs.join(" ")});
+  // closing CTA
+  let cta=null; const last=paras[paras.length-1];
+  if(last&&last.t==="p"&&CTA_RE.test(last.text)&&last.text.length<420){paras.pop();const ls=sentences(last.text);
+    const short=ls.find(x=>x.length<=70);cta=S("cta","orange",{kicker:"Let's talk",head:short||"Let's talk.",sub:short?"":(ls.join(" ").length<=200?ls.join(" "):"Send me a message today.")});
+    if(short&&ls.length>1){const rest=ls.filter(x=>x!==short).join(" ");if(rest.length<=120)cta.sub=rest;}}
+  if(!cta)cta=S("cta","orange",{kicker:"Let's talk",head:"Planning to study in the UK?",sub:"Send me a message today."});
+  const budgets={short:[150,190,240,300],medium:[230,290,350,420],long:[330,400,480,560]}[density]||[230,290,350,420];
+  let body=[];
+  for(const B of budgets){body=chunk(paras,B);if(body.length<=18)break;}
+  if(body.length>18)body=body.slice(0,18);
+  // rhythm: one ivory slide near the middle
+  const mid=body.findIndex((s,i)=>i>=Math.floor(body.length/2)-1&&s.type!=="quote");
+  if(body.length>=3&&mid>-1)body[mid].theme="ivory";
+  return [cover,...body,cta];
+}
+function chunk(paras,B){
+  const out=[];let buf=[];let len=0;
+  const flush=()=>{if(!buf.length)return;out.push(makeSlide(buf));buf=[];len=0;};
+  for(const p of paras){
+    if(p.t==="list"){let lead="";if(buf.length&&/:$/.test(buf[buf.length-1])){lead=buf.pop();}flush();
+      for(let i=0;i<p.items.length;i+=5)out.push(S("list","navy",{head:i===0&&lead.length<=70?starLast(lead):"",body:i===0&&lead.length>70?lead:"",items:p.items.slice(i,i+5).join("\n"),style:"check"}));continue;}
+    const t=p.text;
+    if(/^["“].+["”]$/.test(t)&&t.length<=200){flush();out.push(S("quote","navy",{head:t.replace(/^["“]|["”]$/g,"")}));continue;}
+    const ss=sentences(t);
+    if(len&&len+t.length>B*0.6)flush();
+    for(const x of ss){if(len&&len+x.length>B)flush();buf.push(x);len+=x.length+1;}
+    if(len>B*0.45)flush();
+  }
+  flush();return out;
+}
+function makeSlide(ss){
+  const all=ss.join(" ");
+  if(ss.length===1&&all.length<=95)return S("statement","navy",{head:starLast(all)});
+  if(ss[0].length<=70&&ss.length>1){const rest=ss.slice(1).join(" ");return S("statement","navy",{head:starLast(ss[0]),body:rest});}
+  return S("text","navy",{body:all});
+}
+$("openWu").onclick=()=>{$("wu").hidden=false;setTimeout(()=>$("wuText").focus(),50);};
+$("wuCancel").onclick=()=>{$("wu").hidden=true;};
+$("wuText").oninput=()=>{const n=($("wuText").value.match(/\S+/g)||[]).length;$("wuCount").textContent=n+" words";};
+$("wuGo").onclick=()=>{const sl=writeupToSlides($("wuText").value,$("wuKicker").value.trim(),$("wuDensity").value);
+  if(!sl){$("wuCount").textContent="Paste your write-up first.";return;}
+  state.slides=sl;state.cur=0;$("wu").hidden=true;commit(true);
+  setStatus(`Made ${sl.length} slides. Check the cover headline first, then tap through each slide.`,"ok");window.scrollTo({top:0,behavior:"smooth"});};
+
+renderAll();
+document.fonts&&document.fonts.ready.then(fit);
+/* passcode gate: keeps casual visitors out (not bank-grade security) */
+const PASS_HASH="5bb1fa14bc92fb2e4b30bb9557cea4942e8841f6b48fc8f7f6281f48b3fdaa88";
+async function sha(t){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");}
+let unlocked=false;try{unlocked=localStorage.getItem("tutorj-unlocked")===PASS_HASH;}catch(e){}
+if(!unlocked)$("gate").hidden=false;
+$("gateForm").onsubmit=async e=>{e.preventDefault();const v=$("pass").value.trim().toLowerCase();
+  if(await sha(v)===PASS_HASH){try{localStorage.setItem("tutorj-unlocked",PASS_HASH);}catch(_){}$("gate").hidden=true;fit();}
+  else $("gateMsg").textContent="That passcode isn't right. Try again.";};
+if("serviceWorker" in navigator)window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+</script>
+</body></html>
