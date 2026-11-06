@@ -243,10 +243,6 @@ details.brandbox[open] summary{margin-bottom:12px}
             <div class="field"><label for="b_ig">Instagram</label><input id="b_ig"></div>
             <div class="field"><label for="b_phone">Phone</label><input id="b_phone"></div>
           </div>
-          <div class="two">
-            <div class="field"><label for="b_web">Website</label><input id="b_web"></div>
-            <div class="field"><label for="b_loc">Locations</label><input id="b_loc"></div>
-          </div>
         </div>
       </details>
     </div>
@@ -316,7 +312,7 @@ const PRESETS = {
     S("quote","navy",{head:"An offer letter is a step. A *funded* offer is the plan.",sub:"Plan both at the same time."}),
     S("cta","orange",{kicker:"Let's talk",head:"Planning to study in the UK?",sub:"Send me a message and let's plan your application."})],
 };
-const BRAND0 = {name:"Jennifer Olawore",role:"UK Education Counselor · British Council Certified",ig:"@jennifer_olawore",phone:"+234 706 920 6195",web:"linktr.ee/olaworejennifer",loc:"UK study admissions"};
+const BRAND0 = {name:"Jennifer Olawore",role:"UK Education Counselor · British Council Certified",ig:"@jennifer_olawore",phone:"+234 706 920 6195"};
 const KEY="tutorj-carousel-studio-v1";
 let state = {brand:{...BRAND0}, slides:PRESETS.intake(), cur:0};
 try{const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s&&Array.isArray(s.slides)&&s.slides.length){state={...state,...s,brand:{...BRAND0,...(s.brand||{})}};}}catch(e){}
@@ -360,7 +356,7 @@ function slideHTML(s,i,n){
     case "text": {const L=(s.body||"").replace(/\*/g,"").length; const ss=sentences(s.body||""); const f=ss.shift()||""; body=`${k}<p class="txt ${L>300?"sm":L>190?"md":""}"><b>${hilite(f)}</b> <span class="r">${hilite(ss.join(" "))}</span></p>`;break;}
     case "cta": body=`${k}<h2 class="h ${headSize(s.head,"l")}">${orange(s.head)}</h2>${s.sub?`<div class="sub serif">${hilite(s.sub)}</div>`:""}
       <div class="card"><div class="nm">${esc(b.name)}</div><div class="role">${esc(b.role)}</div><div class="lines">
-      <div>${ICON.ig}${esc(b.ig)}</div><div>${ICON.ph}${esc(b.phone)}</div><div>${ICON.web}${esc(b.web)}</div><div>${ICON.pin}${esc(b.loc)}</div></div></div>`;break;
+      <div>${ICON.ig}${esc(b.ig)}</div><div>${ICON.ph}${esc(b.phone)}</div></div></div>`;break;
   }
   const corner = n>1?`${String(i+1).padStart(2,"0")} / ${String(n).padStart(2,"0")}`:"";
   const pg=n>1?`<span class="pg">${String(i+1).padStart(2,"0")} / ${String(n).padStart(2,"0")}</span>`:"";
